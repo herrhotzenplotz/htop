@@ -13,6 +13,7 @@ in the source distribution for its full text.
    JAIL = 101,                   \
    EMULATION = 102,              \
    SCHEDCLASS = 103,             \
+   WCHAN = 104,                  \
                                  \
    DUMMY_BUMP_FIELD = CWD,       \
    // End of list

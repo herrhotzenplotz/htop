@@ -57,6 +57,7 @@ const ProcessFieldData Process_fields[LAST_PROCESSFIELD] = {
    [JAIL] = { .name = "JAIL", .title = "JAIL        ", .description = "Jail prison name", .flags = 0, },
    [SCHEDCLASS] = { .name = "SCHEDCLASS", .title = "SC", .description = "Scheduling Class (Timesharing, Realtime, Idletime)", .flags = 0, },
    [EMULATION] = { .name = "EMULATION", .title = "EMULATION        ", .description = "System call emulation environment (ABI)", .flags = 0, },
+   [WCHAN] = { .name = "WCHAN", .title = "WCHAN    ", .description = "Wait Channel Message", .flags = 0, },
 };
 
 Process* FreeBSDProcess_new(const Machine* machine) {
@@ -108,6 +109,10 @@ static void FreeBSDProcess_rowWriteField(const Row* super, RichString* str, Proc
       xSnprintf(buffer, n, " %c", FreeBSD_schedclassChars[fp->sched_class]);
       break;
 
+   case WCHAN:
+      Row_printLeftAlignedField(str, attr, fp->wchan ? fp->wchan : "-", 9);
+      return;
+
    default:
       Process_writeField(&fp->super, str, field);
       return;
@@ -130,6 +135,8 @@ static int FreeBSDProcess_compareByKey(const Process* v1, const Process* v2, Pro
       return SPACESHIP_NULLSTR(p1->emul, p2->emul);
    case SCHEDCLASS:
       return SPACESHIP_NUMBER(p1->sched_class, p2->sched_class);
+   case WCHAN:
+      return SPACESHIP_NULLSTR(p1->wchan, p2->wchan);
    default:
       return Process_compareByKey_Base(v1, v2, key);
    }

@@ -29,6 +29,7 @@ typedef struct FreeBSDProcess_ {
 
       MAX_SCHEDCLASS,
    } sched_class;
+   char* wchan;
 } FreeBSDProcess;
 
 extern const ProcessClass FreeBSDProcess_class;

@@ -302,6 +302,14 @@ void ProcessTable_goThroughEntries(ProcessTable* super) {
          default:     proc->state = UNKNOWN;
       }
 
+      /* Wait channel. If the string is non-empty (will never be NULL because it's an array) there's a message */
+      if (*kproc->ki_wmesg) {
+         free_and_xStrdup(&fp->wchan, kproc->ki_wmesg);
+      } else {
+         free(fp->wchan);
+         fp->wchan = NULL;
+      }
+
       if (Process_isKernelThread(proc))
          super->kernelThreads++;
 
