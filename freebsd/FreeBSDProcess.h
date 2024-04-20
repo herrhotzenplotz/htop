@@ -19,6 +19,16 @@ typedef struct FreeBSDProcess_ {
    int   jid;
    char* jname;
    char* emul;
+   enum {
+      SCHEDCLASS_UNKNOWN = 0,
+
+      SCHEDCLASS_ITHD, /* interrupt thread */
+      SCHEDCLASS_REALTIME,
+      SCHEDCLASS_TIMESHARE,
+      SCHEDCLASS_IDLE,
+
+      MAX_SCHEDCLASS,
+   } sched_class;
 } FreeBSDProcess;
 
 extern const ProcessClass FreeBSDProcess_class;

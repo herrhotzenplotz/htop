@@ -55,6 +55,7 @@ const ProcessFieldData Process_fields[LAST_PROCESSFIELD] = {
 #endif
    [JID] = { .name = "JID", .title = "JID", .description = "Jail prison ID", .flags = 0, .pidColumn = true, },
    [JAIL] = { .name = "JAIL", .title = "JAIL        ", .description = "Jail prison name", .flags = 0, },
+   [SCHEDCLASS] = { .name = "SCHEDCLASS", .title = "SC", .description = "Scheduling Class (Timesharing, Realtime, Idletime)", .flags = 0, },
    [EMULATION] = { .name = "EMULATION", .title = "EMULATION        ", .description = "System call emulation environment (ABI)", .flags = 0, },
 };
 
@@ -73,6 +74,15 @@ void Process_delete(Object* cast) {
    free(this);
 }
 
+static_assert(MAX_SCHEDCLASS == 5, "The lookup table below isn't in sync with the SCHEDCLASS_ enum. Please update.");
+static const char FreeBSD_schedclassChars[MAX_SCHEDCLASS] = {
+   [SCHEDCLASS_UNKNOWN] = '?',
+   [SCHEDCLASS_ITHD] = '-',
+   [SCHEDCLASS_IDLE] = 'i',
+   [SCHEDCLASS_TIMESHARE] = ' ',
+   [SCHEDCLASS_REALTIME] = 'r',
+};
+
 static void FreeBSDProcess_rowWriteField(const Row* super, RichString* str, ProcessField field) {
    const FreeBSDProcess* fp = (const FreeBSDProcess*) super;
 
@@ -80,15 +90,24 @@ static void FreeBSDProcess_rowWriteField(const Row* super, RichString* str, Proc
    int attr = CRT_colors[DEFAULT_COLOR];
    size_t n = sizeof(buffer) - 1;
 
+
    switch (field) {
    // add FreeBSD-specific fields here
    case JID: xSnprintf(buffer, n, "%*d ", Process_pidDigits, fp->jid); break;
+
    case JAIL:
       Row_printLeftAlignedField(str, attr, fp->jname ? fp->jname : "N/A", 11);
       return;
+
    case EMULATION:
       Row_printLeftAlignedField(str, attr, fp->emul ? fp->emul : "N/A", 16);
       return;
+
+   case SCHEDCLASS:
+      assert(SCHEDCLASS_UNKNOWN <= fp->sched_class && fp->sched_class < MAX_SCHEDCLASS);
+      xSnprintf(buffer, n, " %c", FreeBSD_schedclassChars[fp->sched_class]);
+      break;
+
    default:
       Process_writeField(&fp->super, str, field);
       return;
@@ -109,6 +128,8 @@ static int FreeBSDProcess_compareByKey(const Process* v1, const Process* v2, Pro
       return SPACESHIP_NULLSTR(p1->jname, p2->jname);
    case EMULATION:
       return SPACESHIP_NULLSTR(p1->emul, p2->emul);
+   case SCHEDCLASS:
+      return SPACESHIP_NUMBER(p1->sched_class, p2->sched_class);
    default:
       return Process_compareByKey_Base(v1, v2, key);
    }
